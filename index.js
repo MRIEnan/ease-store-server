@@ -28,6 +28,7 @@ async function run(){
         await client.connect();
         const database = client.db('ease-store');
         const productsCollection = database.collection('products');
+        const ordersCollection = database.collection('orders');
 
         // Get all products 
         app.get('/products',async(req,res)=>{
@@ -43,6 +44,52 @@ async function run(){
             query ={ _id: ObjectId(id)}
             const cursor = await productsCollection.findOne(query);
             res.json(cursor);
+        })
+
+        // get all orders
+        app.get('/orders',async(req,res)=>{
+            const query = {};
+            const cursor = ordersCollection.find(query);
+            const result = await cursor.toArray();
+            res.json(result);
+        })
+
+        //Post Order from orderform
+        app.post('/order',async(req,res)=>{
+            const orderInfo = req.body;
+            console.log(orderInfo);
+            const result = await ordersCollection.insertOne(orderInfo);
+            res.json(result);
+        })
+
+        //Get order details by email
+        app.get('/my-orders',async(req,res)=>{
+            const email = req.query.mail;
+            const query = {userEmail:email};
+            const cursor = ordersCollection.find(query);
+            const result = await cursor.toArray();
+            console.log(result)
+            res.json(result);
+        })
+
+        app.delete('/orders',async(req,res)=>{
+            const orderId = req.body.id;
+            console.log('deleting',orderId)
+            const query = {_id:ObjectId(orderId)};
+            console.log('deleting', query)
+            const result = await ordersCollection.deleteOne(query);
+            res.json(result);
+        })
+
+        //Get Item detail by category
+        app.get('/category',async(req,res)=>{
+            const cat = req.query.cat;
+            const query = {category:cat};
+            console.log('query',query);
+            const cursor = productsCollection.find(query);
+            const result = await cursor.toArray();
+            console.log(result);
+            res.json(result);
         })
     }
     finally{
